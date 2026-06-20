@@ -29,6 +29,7 @@ def perform_action(action, params):
     r = requests.post("http://localhost:15526/api/v1/singleplayer", json=params)
     print("perform_action status: " + str(r.status_code))
     print("perform_action response body: " + str(r.json()))
+    return r.json()
 
 
 # Example utility methods, for experimentation
@@ -55,18 +56,27 @@ def play_first_card():
 
         # final case, scan for a card to play with your given energy pool
         energy = game_state["player"]["energy"]
+        result = {}
         for i in range(len(hand)):
             card = hand[i]
             if(int(card["cost"]) <= energy):
                 # card may or may not have a target
                 if(card["target_type"] == "self"):
-                    perform_action("play_card", {"card_index": i})
-                    return
+                    result = perform_action("play_card", {"card_index": i})
                 else:
                     battle = game_state["battle"]
                     targetMonsterID = battle["enemies"][0]["entity_id"]
-                    perform_action("play_card", {"card_index": i, "target": targetMonsterID})
-                    return
+                    result = perform_action("play_card", {"card_index": i, "target": targetMonsterID})
+
+                # sometimes a card can't be played for other reasons...
+                if (result.get("status") == "error"):
+                    print("Vakku card can't be played at index: " + str(i))
+                    continue
+
+                return result
+
+        return result
+
 
 def can_play_first_card():
     print("Vakku: scanning your game state...")
@@ -102,10 +112,14 @@ def can_play_first_card():
 
 # Automatically plays the game for you as Vakku
 def vakku_simulator():
+
     while(True):
         time.sleep(0.3)
         if can_play_first_card():
-            play_first_card()
+            result = play_first_card()
+            if(result.get("status") == "error"):
+                print("Vakku: They blocked me. Ending my turn now")
+                perform_action("end_turn", {})
 
         # end turn if at 0 energy
         game_state = get_full_game_state()
