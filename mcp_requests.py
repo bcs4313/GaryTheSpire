@@ -58,7 +58,15 @@ def play_first_card():
         for i in range(len(hand)):
             card = hand[i]
             if(int(card["cost"]) <= energy):
-                perform_action("play_card", {"card_index": i})
+                # card may or may not have a target
+                if(card["target_type"] == "self"):
+                    perform_action("play_card", {"card_index": i})
+                    return
+                else:
+                    battle = game_state["battle"]
+                    targetMonsterID = battle["enemies"][0]["entity_id"]
+                    perform_action("play_card", {"card_index": i, "target": targetMonsterID})
+                    return
 
 def can_play_first_card():
     print("Vakku: scanning your game state...")
@@ -72,9 +80,13 @@ def can_play_first_card():
         if game_state["state_type"] != "monster":
             return False
 
+        # base case 3: no hand or player
+        if(game_state.get("player") == None or game_state.get("player").get("hand") == None):
+            return False
+
         # get hand
         hand = game_state["player"]["hand"]
-        print("Vakku: your hand sir -> " + str(hand))
+        #print("Vakku: your hand sir -> " + str(hand))
 
         # base case 2: no cards
         if (len(hand) == 0):
@@ -91,9 +103,15 @@ def can_play_first_card():
 # Automatically plays the game for you as Vakku
 def vakku_simulator():
     while(True):
-        time.sleep(0.2)
+        time.sleep(0.3)
         if can_play_first_card():
             play_first_card()
+
+        # end turn if at 0 energy
+        game_state = get_full_game_state()
+        if(game_state.get("player") != None and game_state["player"].get("energy") != None and int(game_state["player"]["energy"]) == 0):
+            print("Vakku: Ending my turn now")
+            perform_action("end_turn", {})
 
 if __name__ == "__main__":
     vakku_simulator()
