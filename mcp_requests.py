@@ -43,7 +43,7 @@ def play_first_card():
         print("Vakku: failed to find your game state. Why do you disappoint him?")
     else:
         # base case 2: not fighting
-        if game_state["state_type"] != "monster" and game_state["state_type"] != "elite":
+        if game_state["state_type"] != "monster" and game_state["state_type"] != "elite" and game_state["state_type"] != "boss":
             print("Vakku: Your are not fighting a monster right now. You test my patience mortal.")
 
         # get hand
@@ -87,7 +87,7 @@ def can_play_first_card():
         return False
     else:
         # base case 2: not fighting
-        if game_state["state_type"] != "monster" and game_state["state_type"] != "elite":
+        if game_state["state_type"] != "monster" and game_state["state_type"] != "elite" and game_state["state_type"] != "boss":
             return False
 
         # base case 3: no hand or player
