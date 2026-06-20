@@ -7,6 +7,7 @@ If you want more info: the docs of the repo has all the endpoints you would need
 """
 import requests
 import json
+import time
 
 # endpoint GET methods
 def get_full_game_state():
@@ -52,7 +53,47 @@ def play_first_card():
         if(len(hand) == 0):
             print("Vakku: you have nothing to play. I'm just gonna wait this one out.")
 
-        perform_action("play_card", {"card_index": 0})
+        # final case, scan for a card to play with your given energy pool
+        energy = game_state["player"]["energy"]
+        for i in range(len(hand)):
+            card = hand[i]
+            if(int(card["cost"]) <= energy):
+                perform_action("play_card", {"card_index": i})
+
+def can_play_first_card():
+    print("Vakku: scanning your game state...")
+    game_state = get_full_game_state()
+
+    # base case 1: no game state
+    if game_state == "":
+        return False
+    else:
+        # base case 2: not fighting
+        if game_state["state_type"] != "monster":
+            return False
+
+        # get hand
+        hand = game_state["player"]["hand"]
+        print("Vakku: your hand sir -> " + str(hand))
+
+        # base case 2: no cards
+        if (len(hand) == 0):
+            return False
+
+        # final case, scan for a card to play with your given energy pool
+        energy = game_state["player"]["energy"]
+        for card in hand:
+            if(int(card["cost"]) <= energy):
+                return True
+        return False
+
+
+# Automatically plays the game for you as Vakku
+def vakku_simulator():
+    while(True):
+        time.sleep(0.2)
+        if can_play_first_card():
+            play_first_card()
 
 if __name__ == "__main__":
-    play_first_card()
+    vakku_simulator()
