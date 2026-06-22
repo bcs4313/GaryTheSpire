@@ -8,9 +8,9 @@ from torch.distributions.categorical import Categorical  # probability distribut
 class PPOMemory:
     def __init__(self, batch_size):
         self.states = []  # states for each step
+        self.actions = []  # actions taken
         self.probs = []  # log probability of action
         self.vals = []  # antcipated reward values from critic
-        self.actions = []  # actions taken
         self.rewards = []  # actual rewards received
         self.dones = []  # terminal flags that end episodes
 
@@ -32,6 +32,8 @@ class PPOMemory:
             # (each element in batches is now its own list of states)
             batches = [indices[i:i+self.batch_size] for i in batch_start]
 
+            # return the batches with random indice arrays + all PPOMemory data
+            # access relevant data using those indices
             return np.array(self.states),\
                 np.array(self.actions),\
                 np.array(self.probs),\
@@ -39,3 +41,21 @@ class PPOMemory:
                 np.array(self.rewards),\
                 np.array(self.drones),\
                 batches
+
+        # simply add a fully formed memory to the class
+        def store_memory(state, action, probs, vals, reward, done):
+            self.states.append(state)
+            self.actions.append(action)
+            self.probs.append(probs)
+            self.vals.append(vals)
+            self.rewards.append(reward)
+            self.dones.append(done)
+
+        # MIND WIPE (Like men in black) *flash
+        def clear_memory(self):
+            self.states = []
+            self.actions = []
+            self.probs = []
+            self.vals = []
+            self.rewards = []
+            self.dones = []
