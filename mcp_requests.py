@@ -36,46 +36,49 @@ def perform_action(action, params):
 # VAKKU Simulator
 def play_first_card():
     print("Vakku: scanning your game state...")
-    game_state = get_full_game_state()
+    try:
+        game_state = get_full_game_state()
 
-    # base case 1: no game state
-    if game_state == "":
-        print("Vakku: failed to find your game state. Why do you disappoint him?")
-    else:
-        # base case 2: not fighting
-        if game_state["state_type"] != "monster" and game_state["state_type"] != "elite" and game_state["state_type"] != "boss":
-            print("Vakku: Your are not fighting a monster right now. You test my patience mortal.")
+        # base case 1: no game state
+        if game_state == "":
+            print("Vakku: failed to find your game state. Why do you disappoint him?")
+        else:
+            # base case 2: not fighting
+            if game_state["state_type"] != "monster" and game_state["state_type"] != "elite" and game_state["state_type"] != "boss":
+                print("Vakku: Your are not fighting a monster right now. You test my patience mortal.")
 
-        # get hand
-        hand = game_state["player"]["hand"]
-        print("Vakku: your hand sir -> " + str(hand))
+            # get hand
+            hand = game_state["player"]["hand"]
+            print("Vakku: your hand sir -> " + str(hand))
 
-        # base case 2: no cards
-        if(len(hand) == 0):
-            print("Vakku: you have nothing to play. I'm just gonna wait this one out.")
+            # base case 2: no cards
+            if(len(hand) == 0):
+                print("Vakku: you have nothing to play. I'm just gonna wait this one out.")
 
-        # final case, scan for a card to play with your given energy pool
-        energy = game_state["player"]["energy"]
-        result = {}
-        for i in range(len(hand)):
-            card = hand[i]
-            if(int(card["cost"]) <= energy):
-                # card may or may not have a target
-                if(card["target_type"] == "self"):
-                    result = perform_action("play_card", {"card_index": i})
-                else:
-                    battle = game_state["battle"]
-                    targetMonsterID = battle["enemies"][0]["entity_id"]
-                    result = perform_action("play_card", {"card_index": i, "target": targetMonsterID})
+            # final case, scan for a card to play with your given energy pool
+            energy = game_state["player"]["energy"]
+            result = {}
+            for i in range(len(hand)):
+                card = hand[i]
+                if(int(card["cost"]) <= energy):
+                    # card may or may not have a target
+                    if(card["target_type"] == "self"):
+                        result = perform_action("play_card", {"card_index": i})
+                    else:
+                        battle = game_state["battle"]
+                        targetMonsterID = battle["enemies"][0]["entity_id"]
+                        result = perform_action("play_card", {"card_index": i, "target": targetMonsterID})
 
-                # sometimes a card can't be played for other reasons...
-                if (result.get("status") == "error"):
-                    print("Vakku card can't be played at index: " + str(i))
-                    continue
+                    # sometimes a card can't be played for other reasons...
+                    if (result.get("status") == "error"):
+                        print("Vakku card can't be played at index: " + str(i))
+                        continue
 
-                return result
+                    return result
 
-        return result
+            return result
+    except Exception as e:
+        print("Vakku Error: " + str(e))
 
 
 def can_play_first_card():
